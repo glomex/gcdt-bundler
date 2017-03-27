@@ -1,0 +1,10 @@
+{
+  "tenkai": {
+    "codedeploy": {
+      "applicationName": "TenkaiUnitTestApplicationName",
+      "deploymentGroupName": "TenkaiUnitTestDeploymentGroup",
+      "deploymentConfigName": "TenkaiUnitTestDeploymentConfig",
+      "artifactsBucket": "tenkai-unit-test-deployment"
+    }
+  }
+}
