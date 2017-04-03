@@ -193,9 +193,7 @@ def test_prebundle(temp_folder):
         },
         "bundling": {
             "preBundle": [
-                _script('sample_script')  #,
-                #_script('create_handler'),
-                #_script('create_settings')
+                _script('sample_script')
             ],
             "folders": [
                 {
