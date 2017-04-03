@@ -176,9 +176,6 @@ def test_get_zipped_file(temp_folder):
 def test_prebundle(temp_folder):
     log.info('running test_prebundle')
 
-    # TODO: add this to collection "how not to use lambda"
-    #script = lambda r: here(
-    #    'resources/sample_lambda_with_prebundle/{}.sh'.format(r))
     def _script(name):
         return here('resources/sample_lambda_with_prebundle/%s.sh' % name)
 
