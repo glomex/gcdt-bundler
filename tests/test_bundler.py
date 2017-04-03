@@ -5,6 +5,7 @@ import io
 import textwrap
 import logging
 from zipfile import ZipFile
+from tempfile import mkdtemp
 
 import pytest
 from gcdt_testtools.helpers import temp_folder, create_tempfile, get_size, \
@@ -107,6 +108,10 @@ def test_cleanup_folder(temp_folder, cleanup_tempfiles):
 
 @pytest.mark.slow
 def test_install_dependencies_with_pip(temp_folder, cleanup_tempfiles):
+    #temp_folder = [mkdtemp()]
+    #os.chdir(temp_folder[0])
+    #print(temp_folder)
+
     requirements_txt = create_tempfile('werkzeug\n')
     cleanup_tempfiles.append(requirements_txt)
     log.info(_install_dependencies_with_pip(

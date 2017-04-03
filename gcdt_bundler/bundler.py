@@ -10,9 +10,14 @@ import subprocess
 import io
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import warnings
+from optparse import Values
 
 import pathspec
 from clint.textui import colored
+#from pip.baseparser import parser
+from pip.baseparser import ConfigOptionParser
+import pip.commands.install
+
 from gcdt import gcdt_signals
 from gcdt.utils import execute_scripts
 
@@ -100,6 +105,24 @@ def _install_dependencies_with_pip(requirements_file, destination_folder):
         return 1
     return 0
 
+
+# version without popen
+'''
+def _install_dependencies_with_pip(requirements_file, destination_folder):
+    i = pip.commands.install.InstallCommand()
+    params = ['-r', requirements_file]
+    options, args = i.parse_args(params)
+    options.venv = destination_folder
+    options.venv_base = destination_folder
+    options.respect_venv = True
+    options.require_venv = True
+    options.no_input = True
+    options.verbose = 2
+    log.debug('PIP parsed options: %s' % options)
+    log.debug('PIP parsed args: %s' % args)
+
+    log.debug('PIP exec: %s' % i.run(options, args))
+'''
 
 def _install_dependencies_with_npm():
     """installs dependencies from a package.json file
