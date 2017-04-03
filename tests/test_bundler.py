@@ -47,7 +47,7 @@ def test_files_to_bundle():
     expected = ['sample_code.txt', 'sample_code2.txt', 'folder/sample_code3.txt']
 
     actual = [x[1] for x in _files_to_bundle(codedeploy)]
-    assert actual == expected
+    assert set(actual) == set(expected)  # unordered comparison
 
 
 @pytest.mark.slow
