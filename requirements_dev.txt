@@ -11,7 +11,7 @@ setuptools>=34.2.0
 pep8>=1.7.0
 pylint>=1.6.4
 bumpversion>=0.5.3
-awscli>=1.11.56
+awscli>=1.11.67
 pypandoc>=1.3.3
 
 # misc
