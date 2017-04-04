@@ -47,7 +47,7 @@ def test_files_to_bundle():
     expected = ['sample_code.txt', 'sample_code2.txt', 'folder/sample_code3.txt']
 
     actual = [x[1] for x in _files_to_bundle(codedeploy)]
-    assert actual == expected
+    assert set(actual) == set(expected)  # unordered comparison
 
 
 @pytest.mark.slow
@@ -176,9 +176,6 @@ def test_get_zipped_file(temp_folder):
 def test_prebundle(temp_folder):
     log.info('running test_prebundle')
 
-    # TODO: add this to collection "how not to use lambda"
-    #script = lambda r: here(
-    #    'resources/sample_lambda_with_prebundle/{}.sh'.format(r))
     def _script(name):
         return here('resources/sample_lambda_with_prebundle/%s.sh' % name)
 
@@ -193,9 +190,7 @@ def test_prebundle(temp_folder):
         },
         "bundling": {
             "preBundle": [
-                _script('sample_script')  #,
-                #_script('create_handler'),
-                #_script('create_settings')
+                _script('sample_script')
             ],
             "folders": [
                 {
