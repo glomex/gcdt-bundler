@@ -9,7 +9,7 @@ gcdt: https://github.com/glomex/gcdt
 
 Features include:
 
-* 
+* bundle artifacts (zip file) for tenkai and ramuda
 
 
 ## Running tests

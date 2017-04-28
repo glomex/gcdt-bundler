@@ -5,7 +5,6 @@ import os
 import sys
 import shutil
 import tarfile
-import logging
 import subprocess
 import io
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
@@ -20,8 +19,10 @@ import pip.commands.install
 
 from gcdt import gcdt_signals
 from gcdt.utils import execute_scripts
+from gcdt.gcdt_logging import getLogger
 
-log = logging.getLogger(__name__)
+
+log = getLogger(__name__)
 
 
 # from tenkai_core:
