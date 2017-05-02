@@ -208,7 +208,8 @@ def make_zip_file_bytes(paths, handler, settings=None):
                 # give settings.conf -rw-r--r-- permissions
                 # TODO allow json files for non-hocon setups
                 settings_file = ZipInfo('settings.conf')
-                settings_file.external_attr = 0644 << 16L
+                #settings_file.external_attr = 0644 << 16L # permissions -r-wr--r--
+                settings_file.external_attr = 0o644 << 16 # permissions -r-wr--r--
                 z.writestr(settings_file, settings)
             z.write(handler, os.path.basename(handler))
 
