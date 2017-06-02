@@ -1,4 +1,8 @@
 # Dependencies have to be in sync with other packages (gcdt, glomex-credstash)
 # gcdt dependency is from gcdt => gcdt-plugins
+pathlib2>=2.2.1
+pathspec==0.5.2
+virtualenv>=15.1.0
+#nodeenv==1.1.2
 
 # Other dependencies
