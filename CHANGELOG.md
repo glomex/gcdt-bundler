@@ -4,7 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### [0.0.20] - 2017-006-06
 #### Added
-- FEATURE bundling for nodejs6.10 and python3.6 runtimes
+- FEATURE bundling for additional nodejs6.10 and python3.6 runtimes
 
 ### [0.0.18] - 2017-05-02
 #### Added
