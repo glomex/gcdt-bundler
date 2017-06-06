@@ -13,7 +13,7 @@ from gcdt import gcdt_signals, GcdtError
 from gcdt.utils import execute_scripts
 from gcdt.gcdt_logging import getLogger
 from gcdt.gcdt_defaults import DEFAULT_CONFIG
-import nodeenv
+from .vendor import nodeenv
 
 from gcdt_bundler.bundler_utils import glob_files, get_path_info
 
@@ -228,14 +228,14 @@ def _install_dependencies_with_npm(runtime, keep=False):
         'without_ssl': False, 'with_npm': False, 'profile': False,
         'load_average': None, 'jobs': '2', 'update': False, 'make_path': 'make',
         'npm': 'latest', 'clean_src': False, 'prebuilt': True, 'list': False,
-        'quiet': False, 'python_virtualenv': False, 'debug': False,
+        'quiet': False, 'python_virtualenv': True, 'debug': False,
         'config_file': ['./setup.cfg', '~/.nodeenvrc']
     })
     nodeenv.create_environment(NODEENV_FOLDER, opt)
 
     if not os.path.isfile('package.json'):
         return
-    cmd = ['nodeenv/bin/npm', 'install']
+    cmd = ['npm', 'install']
 
     try:
         subprocess.check_output(cmd, stderr=subprocess.STDOUT)
