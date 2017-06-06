@@ -235,7 +235,7 @@ def _install_dependencies_with_npm(runtime, keep=False):
 
     if not os.path.isfile('package.json'):
         return
-    cmd = ['npm', 'install']
+    cmd = ['nodeenv/bin/npm', 'install']
 
     try:
         subprocess.check_output(cmd, stderr=subprocess.STDOUT)
