@@ -29,11 +29,18 @@ class VirtualenvError(GcdtError):
     fmt = 'Unable to use virtualenv during ramuda bundling phase.'
 
 
-class DependencyInstallationError(GcdtError):
+class PipDependencyInstallationError(GcdtError):
     """
     No credentials could be found
     """
     fmt = 'Unable to install pip dependencies for your AWS Lambda function.'
+
+
+class NpmDependencyInstallationError(GcdtError):
+    """
+    No credentials could be found
+    """
+    fmt = 'Unable to install npm dependencies for your AWS Lambda function.'
 
 
 # tenkai bundling:
@@ -189,7 +196,7 @@ def _install_dependencies_with_pip(requirements_file, runtime, venv_dir,
     except subprocess.CalledProcessError as e:
         log.debug('Running command: %s resulted in the ' % e.cmd)
         log.debug('following error: %s' % e.output)
-        raise DependencyInstallationError()
+        raise PipDependencyInstallationError()
 
 
 def _install_dependencies_with_npm(runtime, keep=False):
@@ -235,7 +242,7 @@ def _install_dependencies_with_npm(runtime, keep=False):
     except subprocess.CalledProcessError as e:
         log.debug('Running command: %s resulted in the ' % e.cmd)
         log.debug('following error: %s' % e.output)
-        raise DependencyInstallationError()
+        raise NpmDependencyInstallationError()
 
 
 def make_zip_file_bytes(paths, gcdtignore=None, artifacts=None):
