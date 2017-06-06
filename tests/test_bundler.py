@@ -9,7 +9,7 @@ from zipfile import ZipFile
 
 import pytest
 from gcdt_testtools.helpers import temp_folder, create_tempfile, get_size, \
-    check_npm_precondition, cleanup_tempfiles, list_zip
+    cleanup_tempfiles, list_zip
 from gcdt_testtools import helpers
 
 from gcdt_bundler.bundler import bundle_revision, _install_dependencies_with_pip, \
@@ -63,7 +63,6 @@ def test_install_dependencies_with_pip(runtime, temp_folder, cleanup_tempfiles):
 
 
 @pytest.mark.slow
-@check_npm_precondition
 @pytest.mark.parametrize('runtime', ['nodejs4.3', 'nodejs6.10'])
 def test_install_dependencies_with_npm(runtime, temp_folder):
     with open('./package.json', 'w') as req:
