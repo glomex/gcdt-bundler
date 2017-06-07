@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+### [0.0.24] - 2017-06-07
+#### Added
+- FEATURE debug msg for files skipped by gcdtignore patterns
+
 ### [0.0.23] - 2017-06-07
 #### Added
 - FEATURE moved reading of ignore patterns to config-readers 
