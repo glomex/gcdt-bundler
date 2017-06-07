@@ -1,1 +1,2 @@
 pyhocon==0.3.28
+numpy==1.10.4  # use the precompiled package

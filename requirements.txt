@@ -3,6 +3,11 @@
 pathlib2>=2.2.1
 pathspec==0.5.2
 virtualenv>=15.1.0
+# we have the nodeenv dependency on board until this is resolved:
+#   https://github.com/ekalinin/nodeenv/issues/185
 #nodeenv==1.1.2
 
 # Other dependencies
+lambda-packages==0.15.1
+requests
+tqdm==4.14.0

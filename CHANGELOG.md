@@ -2,7 +2,12 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-### [0.0.20] - 2017-006-06
+### [0.0.23] - 2017-06-07
+#### Added
+- FEATURE moved reading of ignore patterns to config-readers 
+- FEATURE bundle binary packages for python runtimes
+
+### [0.0.21] - 2017-06-06
 #### Added
 - FEATURE bundling for additional nodejs6.10 and python3.6 runtimes
 
