@@ -34,6 +34,7 @@ def glob_files(root_dir, includes=None, excludes=None, gcdtignore=None):
 
     if gcdtignore:
         spec = pathspec.PathSpec.from_lines('gitwildmatch', gcdtignore)
+        log.debug('gcdtignore patterns: %s', gcdtignore)
 
     while includes:
         pattern = includes.pop(0)
@@ -61,8 +62,10 @@ def glob_files(root_dir, includes=None, excludes=None, gcdtignore=None):
             if excludes and any(map(lambda p: pp.match(p), excludes)):
                 continue
 
-            # check if m is contained in lambdaignore
+            # check if m is contained in gcdtignore
             if gcdtignore and spec.match_file(str(m)):
+                log.debug('Skipped file \'%s\' due to gcdtignore pattern',
+                          str(m.relative_to(root_dir)))
                 continue
 
             yield (str(m), str(m.relative_to(root_dir)))
