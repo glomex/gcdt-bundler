@@ -14,26 +14,12 @@ from gcdt.utils import execute_scripts
 from gcdt.gcdt_logging import getLogger
 from gcdt.gcdt_defaults import DEFAULT_CONFIG
 from .vendor import nodeenv
-
+from .python_bundler import install_dependencies_with_pip, add_deps_folder
 from gcdt_bundler.bundler_utils import glob_files, get_path_info
 
 
 log = getLogger(__name__)
 #nodeenv.logger = getLogger('3rd_party')  # you naughty logger!
-
-
-class VirtualenvError(GcdtError):
-    """
-    No credentials could be found
-    """
-    fmt = 'Unable to use virtualenv during ramuda bundling phase.'
-
-
-class PipDependencyInstallationError(GcdtError):
-    """
-    No credentials could be found
-    """
-    fmt = 'Unable to install pip dependencies for your AWS Lambda function.'
 
 
 class NpmDependencyInstallationError(GcdtError):
@@ -73,33 +59,6 @@ def bundle_revision(paths, outputpath=None, gcdtignore=None):
 
 
 # ramuda bundling
-def _site_packages_dir_in_venv(venv_dir):
-    python_dir = os.listdir(os.path.join(venv_dir, 'lib'))[0]
-    deps_dir = os.path.join(venv_dir, 'lib', python_dir, 'site-packages')
-    return deps_dir
-
-
-def _add_deps_folder(folders, venv_dir):
-    # note: this was 'vendored' folder before
-    # this version shamelessly using chalice helpers (/github.com/awslabs/chalice/)
-    deps_dir = _site_packages_dir_in_venv(venv_dir)
-    assert os.path.isdir(deps_dir)
-
-    # check if deps_dir is contained in folders!
-    deps_dir_missing = True
-    for folder in folders:
-        if folder['source'] == deps_dir:
-            deps_dir_missing = False
-            break
-    if deps_dir_missing:
-        # add missing deps_dir to folders
-        deps_path = {
-            'source': deps_dir,
-            'target': ''
-        }
-        folders.append(deps_path)
-
-
 def _get_zipped_file(
         handler_filename, folders,
         runtime='python2.7',
@@ -127,9 +86,9 @@ def _get_zipped_file(
         venv_dir = DEFAULT_CONFIG['ramuda']['python_bundle_venv_dir']
         req_filename = 'requirements.txt'
         if _has_at_least_one_package(req_filename):
-            _install_dependencies_with_pip('requirements.txt', runtime,
+            install_dependencies_with_pip('requirements.txt', runtime,
                                            venv_dir, keep)
-            _add_deps_folder(folders, venv_dir)
+            add_deps_folder(folders, venv_dir)
     elif runtime.startswith('nodejs'):
         _install_dependencies_with_npm(runtime, keep)
 
@@ -154,49 +113,6 @@ def _get_zipped_file(
         return
 
     return zipfile
-
-
-def _install_dependencies_with_pip(requirements_file, runtime, venv_dir,
-                                   keep=False):
-    """installs dependencies from a pip requirements_file to a local
-    destination_folder
-
-    :param requirements_file: path to valid requirements_file
-    :param runtime: AWS Lambda python runtime version to prepare
-    :param venv_dir: a foldername relative to the current working
-    directory
-    :param keep: keep / cache installed packages
-    """
-    # this bundler version shamelessly uses chalice (/github.com/awslabs/chalice/)
-    def _pip_script_in_venv(venv_dir):
-        pip_exe = os.path.join(venv_dir, 'bin', 'pip')
-        return pip_exe
-
-    if not os.path.isfile(requirements_file):
-        return  # 0
-
-    # prepare virtualenv for pip installation
-    if keep is False:
-        shutil.rmtree(venv_dir, ignore_errors=True)
-    try:
-        # in order to intermix gcdt and AWS Lambda venvs and runtimes
-        # we install virtualenv via subprocess so we can use the '-p' option
-        venv_cmd = ['virtualenv', venv_dir, '-p', runtime]
-        subprocess.check_output(venv_cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        log.debug('Running command: %s resulted in the ' % e.cmd)
-        log.debug('following error: %s' % e.output)
-        raise VirtualenvError()
-
-    try:
-        pip_exe = _pip_script_in_venv(venv_dir)
-        assert os.path.isfile(pip_exe)
-        pip_cmd = [pip_exe, 'install', '-r', requirements_file]
-        subprocess.check_output(pip_cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        log.debug('Running command: %s resulted in the ' % e.cmd)
-        log.debug('following error: %s' % e.output)
-        raise PipDependencyInstallationError()
 
 
 def _install_dependencies_with_npm(runtime, keep=False):
@@ -316,6 +232,7 @@ def prebundle(params):
     if tool == 'ramuda' and cmd in ['bundle', 'deploy']:
         cfg = config['ramuda']
         prebundle_scripts = cfg['bundling'].get('preBundle', None)
+        #prebundle_scripts = cfg.get('bundling', {}).get('preBundle', None)
         if prebundle_scripts:
             prebundle_failed = execute_scripts(prebundle_scripts)
             if prebundle_failed:
@@ -331,14 +248,7 @@ def bundle(params):
     context, config = params
     tool = context['tool']
     cmd = context['command']
-    # TODO: probably better to move the ignore files into our config-readers
-    gcdtignore = None
-    if os.path.exists('.ramudaignore'):
-        with open('~/.ramudaignore', 'r') as ifile:
-            gcdtignore = ifile.read()
-    if os.path.exists('.gcdtignore'):
-        with open('.gcdtignore', 'r') as ifile:
-            gcdtignore += ifile.read()
+    gcdtignore = config.get('gcdtignore', [])
 
     if tool == 'tenkai' and cmd in ['bundle', 'deploy']:
         cfg = config['tenkai']
@@ -350,7 +260,7 @@ def bundle(params):
         else:
             outputpath = None
         context['_bundle_file'] = \
-            bundle_revision(folders, outputpath=outputpath)
+            bundle_revision(folders, outputpath=outputpath, gcdtignore=gcdtignore)
     elif tool == 'ramuda' and cmd in ['bundle', 'deploy']:
         cfg = config['ramuda']
         runtime = cfg['lambda'].get('runtime', 'python2.7')

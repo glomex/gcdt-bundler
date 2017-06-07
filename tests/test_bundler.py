@@ -12,9 +12,8 @@ from gcdt_testtools.helpers import temp_folder, create_tempfile, get_size, \
     cleanup_tempfiles, list_zip
 from gcdt_testtools import helpers
 
-from gcdt_bundler.bundler import bundle_revision, _install_dependencies_with_pip, \
-    _install_dependencies_with_npm, _get_zipped_file, prebundle, make_zip_file_bytes, \
-    _add_deps_folder, _site_packages_dir_in_venv
+from gcdt_bundler.bundler import bundle_revision, _install_dependencies_with_npm, \
+    _get_zipped_file, prebundle, make_zip_file_bytes
 from . import here
 
 log = logging.getLogger(__name__)
@@ -40,26 +39,6 @@ def test_bundle_revision(temp_folder):
     assert 'codedeploy/sample_code.txt' in actual_files
     assert 'codedeploy/sample_code2.txt' in actual_files
     assert 'codedeploy/folder/sample_code3.txt' in actual_files
-
-
-@pytest.mark.slow
-@pytest.mark.parametrize('runtime', ['python2.7', 'python3.6'])
-def test_install_dependencies_with_pip(runtime, temp_folder, cleanup_tempfiles):
-    venv_dir = '%s/.gcdt/venv' % temp_folder[0]
-    requirements_txt = create_tempfile('werkzeug\n')
-    cleanup_tempfiles.append(requirements_txt)
-    log.info(_install_dependencies_with_pip(
-        requirements_txt,
-        runtime,
-        venv_dir,
-        False)
-    )
-
-    deps_dir = _site_packages_dir_in_venv(venv_dir)
-    packages = os.listdir(deps_dir)
-    for package in packages:
-        log.debug(package)
-    assert 'werkzeug' in packages
 
 
 @pytest.mark.slow
