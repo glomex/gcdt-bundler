@@ -11,3 +11,4 @@ virtualenv>=15.1.0
 lambda-packages==0.15.1
 requests
 tqdm==4.14.0
+ruamel.yaml>=0.15.5

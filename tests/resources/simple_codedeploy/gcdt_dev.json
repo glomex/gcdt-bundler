@@ -5,6 +5,7 @@
       "deploymentGroupName": "TenkaiUnitTestDeploymentGroup",
       "deploymentConfigName": "TenkaiUnitTestDeploymentConfig",
       "artifactsBucket": "tenkai-unit-test-deployment"
-    }
+    },
+    "stack_output": "lookup:stack:infra-dev"
   }
 }

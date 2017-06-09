@@ -8,6 +8,8 @@ import io
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import warnings
 import shutil
+import StringIO
+import ruamel.yaml as yaml
 
 from gcdt import gcdt_signals, GcdtError
 from gcdt.utils import execute_scripts
@@ -19,7 +21,6 @@ from gcdt_bundler.bundler_utils import glob_files, get_path_info
 
 
 log = getLogger(__name__)
-#nodeenv.logger = getLogger('3rd_party')  # you naughty logger!
 
 
 class NpmDependencyInstallationError(GcdtError):
@@ -30,12 +31,13 @@ class NpmDependencyInstallationError(GcdtError):
 
 
 # tenkai bundling:
-def bundle_revision(paths, outputpath=None, gcdtignore=None):
+def bundle_revision(paths, outputpath=None, gcdtignore=None, artifacts=None):
     """Create the bundle tar file.
 
     :param paths: list of path => {'source': ,'target': } 
     :param outputpath: path to store the temp archive file
     :param gcdtignore: list of path => {'source': ,'target': }
+    :param artifacts: list of artifacts => {'content': ,'target': , 'attr': } 
     :return: path of the archive
     """
     # tar file since this archive format can contain more files than zip!
@@ -52,9 +54,21 @@ def bundle_revision(paths, outputpath=None, gcdtignore=None):
             for full_path, rel_path in \
                     glob_files(base, includes=[ptz],
                                gcdtignore=gcdtignore):
-                #print(full_path)
                 archive_target = target + rel_path
                 tar.add(full_path, recursive=False, arcname=archive_target)
+
+        # add each artifact as file
+        if artifacts:
+            for artifact in artifacts:
+                log.debug('add artifact \'%s\'', artifact['target'])
+                attr = artifact.get('attr', None)
+                info = tarfile.TarInfo(artifact['target'])
+                info.size = len(artifact['content'])
+                if attr:
+                    # give artifact -rw-r--r-- permissions
+                    info.mode = attr
+                tar.addfile(info, StringIO.StringIO(artifact['content']))
+
     return destfile
 
 
@@ -102,7 +116,7 @@ def _get_zipped_file(
         artifacts.append({
             'content': settings,
             'target': 'settings.conf',
-            'attr': 0o644 << 16  # permissions -r-wr--r--
+            'attr': 0o644  # permissions -rw-r--r--
         })
 
     zipfile = make_zip_file_bytes(folders, artifacts=artifacts,
@@ -199,8 +213,7 @@ def make_zip_file_bytes(paths, gcdtignore=None, artifacts=None):
                 artifact_file = ZipInfo(artifact['target'])
                 attr = artifact.get('attr', None)
                 if attr:
-                    # give artifact -rw-r--r-- permissions
-                    artifact_file.external_attr = attr
+                    artifact_file.external_attr = attr << 16
                 z.writestr(artifact_file, artifact['content'])
 
     return buf.getvalue()
@@ -253,14 +266,24 @@ def bundle(params):
     if tool == 'tenkai' and cmd in ['bundle', 'deploy']:
         cfg = config['tenkai']
         folders = cfg.get('bundling', {}).get('folders', [])
+        stack_output = cfg.get('stack_output', {})
+        artifacts = []
         if len(folders) == 0:
             folders = [{'source': 'codedeploy', 'target': ''}]
         if cmd == 'bundle':
             outputpath = os.getcwd()
         else:
             outputpath = None
+        if stack_output:
+            artifacts.append({
+                'content': yaml.dump(stack_output, Dumper=yaml.RoundTripDumper),
+                'target': DEFAULT_CONFIG['tenkai']['stack_output_file'],
+                'attr': 0o644  # permissions -rw-r--r--
+            })
+
         context['_bundle_file'] = \
-            bundle_revision(folders, outputpath=outputpath, gcdtignore=gcdtignore)
+            bundle_revision(folders, outputpath=outputpath,
+                            gcdtignore=gcdtignore, artifacts=artifacts)
     elif tool == 'ramuda' and cmd in ['bundle', 'deploy']:
         cfg = config['ramuda']
         runtime = cfg['lambda'].get('runtime', 'python2.7')

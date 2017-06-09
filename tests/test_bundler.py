@@ -28,8 +28,15 @@ def test_bundle_revision(temp_folder):
     if file_suffix:
         file_suffix = '_%s' % file_suffix
     expected_filename = '%s/tenkai-bundle%s.tar.gz' % (temp_folder[0], file_suffix)
+    artifacts = [{
+        'content': 'some content',
+        'target': 'stack_output.yml',
+        'attr': 0o644  # permissions -rw-r--r--
+    }]
 
-    tarfile_name = bundle_revision(folders, outputpath=temp_folder[0])
+    tarfile_name = bundle_revision(folders,
+                                   outputpath=temp_folder[0],
+                                   artifacts=artifacts)
     assert tarfile_name == expected_filename
     assert os.path.isfile(expected_filename)
     tar = tarfile.open(tarfile_name)
@@ -39,6 +46,7 @@ def test_bundle_revision(temp_folder):
     assert 'codedeploy/sample_code.txt' in actual_files
     assert 'codedeploy/sample_code2.txt' in actual_files
     assert 'codedeploy/folder/sample_code3.txt' in actual_files
+    assert 'stack_output.yml' in actual_files
 
 
 @pytest.mark.slow
@@ -288,7 +296,7 @@ def test_make_zip_file_bytes_add_artifact():
     settings_file = {
         'content': b'this is my settings file content',
         'target': 'settings.conf',
-        'attr': 0o644 << 16  # permissions -r-wr--r--
+        'attr': 0o644  # permissions -r-wr--r--
     }
     zipfile = make_zip_file_bytes([], artifacts=[settings_file])
     actual_files = list(list_zip(zipfile))
