@@ -8,7 +8,7 @@ import io
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import warnings
 import shutil
-import StringIO
+from io import StringIO
 import ruamel.yaml as yaml
 
 from gcdt import gcdt_signals, GcdtError
@@ -67,7 +67,7 @@ def bundle_revision(paths, outputpath=None, gcdtignore=None, artifacts=None):
                 if attr:
                     # give artifact -rw-r--r-- permissions
                     info.mode = attr
-                tar.addfile(info, StringIO.StringIO(artifact['content']))
+                tar.addfile(info, StringIO(artifact['content']))
 
     return destfile
 
