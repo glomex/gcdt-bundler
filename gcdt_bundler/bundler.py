@@ -290,18 +290,23 @@ def bundle(params):
         if runtime not in DEFAULT_CONFIG['ramuda']['runtime']:
             context['error'] = 'Runtime \'%s\' not supported by gcdt.' % runtime
         else:
-            handler_filename = cfg['lambda'].get('handlerFile')
-            folders = cfg.get('bundling', []).get('folders', [])
-            settings = cfg.get('settings', None)
-            context['_zipfile'] = _get_zipped_file(
-                handler_filename,
-                folders,
-                runtime=runtime,
-                settings=settings,
-                gcdtignore=gcdtignore,
-                keep=(context['_arguments']['--keep']
-                      or DEFAULT_CONFIG['ramuda']['keep'])
-            )
+            try:
+                handler_filename = cfg['lambda'].get('handlerFile')
+                folders = cfg.get('bundling', []).get('folders', [])
+                settings = cfg.get('settings', None)
+                context['_zipfile'] = _get_zipped_file(
+                    handler_filename,
+                    folders,
+                    runtime=runtime,
+                    settings=settings,
+                    gcdtignore=gcdtignore,
+                    keep=(context['_arguments']['--keep']
+                          or DEFAULT_CONFIG['ramuda']['keep'])
+                )
+            except Exception as e:
+                log.debug(str(e), exc_info=True)  # this adds the traceback
+                context['error'] = 'ramuda gcdt-bundler: %s' % str(e)
+                log.error(context['error'])
 
 
 def register():

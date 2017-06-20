@@ -5,11 +5,14 @@ import logging
 import collections
 
 import pytest
+import mock
 from gcdt_testtools.helpers import temp_folder, create_tempfile, cleanup_tempfiles
 from gcdt_testtools import helpers
+from gcdt_bundler.python_bundler import _get_cached_manylinux_wheel, \
+    _have_correct_lambda_package_version, _site_packages_dir_in_venv, \
+    _have_any_lambda_package_version, _get_installed_packages, \
+    install_dependencies_with_pip, PipDependencyInstallationError
 
-from gcdt_bundler.python_bundler import _site_packages_dir_in_venv, \
-    install_dependencies_with_pip
 from . import here
 
 log = logging.getLogger(__name__)
@@ -33,6 +36,21 @@ def test_install_dependencies_with_pip(runtime, temp_folder, cleanup_tempfiles):
     for package in packages:
         log.debug(package)
     assert 'werkzeug' in packages
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('runtime', ['python2.7', 'python3.6'])
+def test_install_dependencies_with_pip_not_found(runtime, temp_folder, cleanup_tempfiles):
+    venv_dir = '%s/.gcdt/venv' % temp_folder[0]
+    requirements_txt = create_tempfile('werkzeug\nnotfound==0.8.15\n')
+    cleanup_tempfiles.append(requirements_txt)
+    with pytest.raises(PipDependencyInstallationError):
+        log.info(install_dependencies_with_pip(
+            requirements_txt,
+            runtime,
+            venv_dir,
+            False)
+        )
 
 
 '''
@@ -71,11 +89,6 @@ def test_create_lambda_package():
         self.assertTrue(os.path.isfile(path))
         os.remove(path)
 '''
-
-from gcdt_bundler.python_bundler import _get_cached_manylinux_wheel, \
-    _have_correct_lambda_package_version, \
-    _have_any_lambda_package_version, _get_installed_packages
-import mock
 
 
 def test_get_manylinux_python27():
