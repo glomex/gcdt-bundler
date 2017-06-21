@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+### [0.0.29] - 2017-06-21
+#### Added
+- FEATURE fix '--keep' option / venv reuse (#145)
+
 ### [0.0.28] - 2017-06-20
 #### Added
 - FEATURE update yaml dependency

@@ -73,13 +73,14 @@ def bundle_revision(paths, outputpath=None, gcdtignore=None, artifacts=None):
 
 
 # ramuda bundling
-def _get_zipped_file(
+def get_zipped_file(
         handler_filename, folders,
         runtime='python2.7',
         settings=None,
         gcdtignore=None,
         keep=False
     ):
+    log.debug('keep: %s', keep)
 
     if runtime.startswith('python'):
         # also from chalice:
@@ -294,7 +295,7 @@ def bundle(params):
                 handler_filename = cfg['lambda'].get('handlerFile')
                 folders = cfg.get('bundling', []).get('folders', [])
                 settings = cfg.get('settings', None)
-                context['_zipfile'] = _get_zipped_file(
+                context['_zipfile'] = get_zipped_file(
                     handler_filename,
                     folders,
                     runtime=runtime,
