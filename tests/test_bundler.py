@@ -13,7 +13,7 @@ from gcdt_testtools.helpers import temp_folder, create_tempfile, get_size, \
 from gcdt_testtools import helpers
 
 from gcdt_bundler.bundler import bundle_revision, _install_dependencies_with_npm, \
-    _get_zipped_file, prebundle, make_zip_file_bytes
+    get_zipped_file, prebundle, make_zip_file_bytes
 from . import here
 
 log = logging.getLogger(__name__)
@@ -101,8 +101,8 @@ def test_get_zipped_file(temp_folder):
         futures*
     """)
 
-    zipfile = _get_zipped_file('./handler.py', folders_from_file,
-                               gcdtignore=gcdtignore)
+    zipfile = get_zipped_file('./handler.py', folders_from_file,
+                              gcdtignore=gcdtignore)
 
     zipped_size = len(zipfile)
     unzipped_size = get_size('vendored') + get_size('impl') + os.path.getsize(
@@ -163,7 +163,7 @@ def test_get_zipped_file_exceeds_limit(temp_folder):
         #print(bigfile.name)
         bigfile.write(os.urandom(51100000))  # 51 MB
 
-    zipfile = _get_zipped_file('./handler.py', folders_from_file)
+    zipfile = get_zipped_file('./handler.py', folders_from_file)
     assert zipfile is None
     # TODO add proper log capture that works!
 
@@ -191,8 +191,8 @@ def test_get_zipped_file_empty_requirements_txt(temp_folder):
     with open('./impl/bigfile', 'wb') as bigfile:
         bigfile.write(os.urandom(1000000))  # 1 MB
 
-    zipfile = _get_zipped_file('./handler.py', folders_from_file,
-                               settings=b'some test config')
+    zipfile = get_zipped_file('./handler.py', folders_from_file,
+                              settings=b'some test config')
 
     actual_files = list(list_zip(zipfile))
 
@@ -219,7 +219,7 @@ def test_get_zipped_file_no_requirements_txt(temp_folder):
     with open('./impl/bigfile', 'wb') as bigfile:
         bigfile.write(os.urandom(1000000))  # 1 MB
 
-    zipfile = _get_zipped_file('handler.py', folders_from_file)
+    zipfile = get_zipped_file('handler.py', folders_from_file)
 
     actual_files = list(list_zip(zipfile))
 

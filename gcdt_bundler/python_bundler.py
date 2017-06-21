@@ -260,23 +260,29 @@ def install_dependencies_with_pip(requirements_file, runtime, venv_dir,
     if not os.path.isfile(requirements_file):
         return  # 0
 
-    # prepare virtualenv for pip installation
-    if keep is False:
+    # prepare virtualenv for pip installation if missing or keep == False
+    if not os.path.exists(venv_dir) or keep is False:
+        log.debug('creating fresh virtualenv in %s', venv_dir)
         shutil.rmtree(venv_dir, ignore_errors=True)
-    try:
-        # in order to intermix gcdt and AWS Lambda venvs and runtimes
-        # we install virtualenv via subprocess so we can use the '-p' option
-        venv_cmd = ['virtualenv', venv_dir, '-p', runtime]
-        subprocess.check_output(venv_cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        log.debug('Running command: %s resulted in the ' % e.cmd)
-        log.debug('following error: %s' % e.output)
-        raise VirtualenvError()
+        try:
+            # in order to intermix gcdt and AWS Lambda venvs and runtimes
+            # we install virtualenv via subprocess so we can use the '-p' option
+            venv_cmd = ['virtualenv', venv_dir, '-p', runtime]
+            subprocess.check_output(venv_cmd, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            log.debug('Running command: %s resulted in the ' % e.cmd)
+            log.debug('following error: %s' % e.output)
+            raise VirtualenvError()
+    else:
+        log.debug('reusing virtualenv due to \'--keep\' option')
 
     try:
         pip_exe = _pip_script_in_venv(venv_dir)
         assert os.path.isfile(pip_exe)
-        pip_cmd = [pip_exe, 'install', '-r', requirements_file]
+        if keep:
+            pip_cmd = [pip_exe, 'install', '-r', requirements_file]
+        else:
+            pip_cmd = [pip_exe, 'install', '-U', '-r', requirements_file]
         subprocess.check_output(pip_cmd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         log.debug('Running command: %s resulted in the ' % e.cmd)
