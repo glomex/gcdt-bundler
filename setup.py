@@ -24,7 +24,7 @@ dependency_links = [x.strip().replace('git+', '') for x in all_reqs if 'git+' no
 
 setup(
     name='gcdt-bundler',
-    version='0.0.433',
+    version='0.0.434',
     description='Plugin (gcdt-bundler) for gcdt',
     long_description=long_description,
     license='MIT',
