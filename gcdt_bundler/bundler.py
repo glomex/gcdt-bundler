@@ -15,6 +15,7 @@ from gcdt import gcdt_signals, GcdtError
 from gcdt.utils import execute_scripts
 from gcdt.gcdt_logging import getLogger
 from gcdt.gcdt_defaults import DEFAULT_CONFIG
+from gcdt.utils import GracefulExit
 from .vendor import nodeenv
 from .python_bundler import install_dependencies_with_pip, add_deps_folder
 from gcdt_bundler.bundler_utils import glob_files, get_path_info
@@ -304,6 +305,8 @@ def bundle(params):
                     keep=(context['_arguments']['--keep']
                           or DEFAULT_CONFIG['ramuda']['keep'])
                 )
+            except GracefulExit:
+                raise
             except Exception as e:
                 log.debug(str(e), exc_info=True)  # this adds the traceback
                 context['error'] = 'ramuda gcdt-bundler: %s' % str(e)

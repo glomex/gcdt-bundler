@@ -16,7 +16,6 @@ import sys
 import os
 import re
 import stat
-#import logging
 import operator
 import optparse
 import subprocess
@@ -27,6 +26,7 @@ import zipfile
 import shutil
 
 from gcdt.gcdt_logging import getLogger
+from gcdt.utils import GracefulExit
 
 logger = getLogger(__name__)
 
@@ -461,6 +461,8 @@ def callit(cmd, show_stdout=True, in_shell=False,
         proc = subprocess.Popen(
             cmd, stderr=subprocess.STDOUT, stdin=None, stdout=stdout,
             cwd=cwd, env=env, shell=in_shell)
+    except GracefulExit:
+        raise
     except Exception:
         e = sys.exc_info()[1]
         logger.error("Error %s while executing command %s" % (e, cmd_desc))

@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+### [0.0.30] - 2017-06-22
+#### Added
+- FEATURE preparation step to handle signals (#40)
+
 ### [0.0.29] - 2017-06-21
 #### Added
 - FEATURE fix '--keep' option / venv reuse (#145)
