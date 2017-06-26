@@ -11,6 +11,7 @@ import time
 
 from gcdt import gcdt_signals, GcdtError
 from gcdt.gcdt_logging import getLogger
+from gcdt.utils import GracefulExit
 import pip
 import requests
 from tqdm import tqdm
@@ -107,6 +108,8 @@ def _get_manylinux_wheel_url(runtime, package_name, package_version):
         for f in data['releases'][package_version]:
             if f['filename'].endswith(_get_manylinux_wheel_file_suffix(runtime)):
                 return f['url']
+    except GracefulExit:
+        raise
     except Exception as e: # pragma: no cover
         return None
     return None
@@ -236,6 +239,8 @@ def install_precompiled_packages(venv_dir, runtime):
                     print(" - %s==%s: Warning! Using precompiled lambda package version %s instead!" % (installed_package_name, installed_package_version, lambda_version, ))
                     _extract_lambda_package(runtime, installed_package_name, temp_project_path)
 
+    except GracefulExit:
+        raise
     except Exception as e:
         print(e)
         # XXX - What should we do here?
