@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### [0.0.30] - 2017-06-22
 #### Added
-- preparation step to handle signals (#40)
+- prepare to handle signals in gcdt (#40)
 
 ### [0.0.29] - 2017-06-21
 #### Added
