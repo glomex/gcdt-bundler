@@ -9,6 +9,7 @@ from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import warnings
 import shutil
 from io import StringIO
+import json
 import ruamel.yaml as yaml
 
 from gcdt import gcdt_signals, GcdtError
@@ -78,6 +79,7 @@ def get_zipped_file(
         handler_filename, folders,
         runtime='python2.7',
         settings=None,
+        settings_file='settings.json',
         gcdtignore=None,
         keep=False
     ):
@@ -111,13 +113,18 @@ def get_zipped_file(
     # add handler to folders
     folders.append({
         'source': handler_filename,
-        'target': ''
+        'target': '.'
     })
+
     artifacts = []
     if settings:
+        if isinstance(settings, dict):
+            content = json.dumps(settings)
+        else:
+            content = settings
         artifacts.append({
-            'content': settings,
-            'target': 'settings.conf',
+            'content': content,
+            'target': settings_file,
             'attr': 0o644  # permissions -rw-r--r--
         })
 
@@ -268,6 +275,8 @@ def bundle(params):
     if tool == 'tenkai' and cmd in ['bundle', 'deploy']:
         cfg = config['tenkai']
         folders = cfg.get('bundling', {}).get('folders', [])
+        settings = cfg.get('settings', None)
+        settings_file = cfg.get('settings_file', DEFAULT_CONFIG['tenkai']['settings_file'])
         stack_output = cfg.get('stack_output', {})
         artifacts = []
         if len(folders) == 0:
@@ -276,6 +285,14 @@ def bundle(params):
             outputpath = os.getcwd()
         else:
             outputpath = None
+
+        if settings:
+            artifacts.append({
+                'content': json.dumps(settings, ensure_ascii=False, encoding='utf8'),
+                'target': settings_file,
+                'attr': 0o644  # permissions -rw-r--r--
+            })
+
         if stack_output:
             artifacts.append({
                 'content': yaml.dump(stack_output, Dumper=yaml.RoundTripDumper),
@@ -296,11 +313,13 @@ def bundle(params):
                 handler_filename = cfg['lambda'].get('handlerFile')
                 folders = cfg.get('bundling', []).get('folders', [])
                 settings = cfg.get('settings', None)
+                settings_file = cfg.get('settings_file', DEFAULT_CONFIG['ramuda']['settings_file'])
                 context['_zipfile'] = get_zipped_file(
                     handler_filename,
                     folders,
                     runtime=runtime,
                     settings=settings,
+                    settings_file=settings_file,
                     gcdtignore=gcdtignore,
                     keep=(context['_arguments']['--keep']
                           or DEFAULT_CONFIG['ramuda']['keep'])

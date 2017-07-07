@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### [0.0.1343] - 2017-06-22
 #### Added
+- ramuda & tenkai settings files - json format (#295)
+
+### [0.0.1343] - 2017-06-22
+#### Added
 - prepare to handle signals in gcdt (#40)
 
 ### [0.0.29] - 2017-06-21

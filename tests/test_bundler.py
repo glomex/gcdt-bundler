@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, print_function
-import tarfile
 import os
+import json
 import io
 import textwrap
 import logging
@@ -9,8 +9,8 @@ from zipfile import ZipFile
 
 import pytest
 from gcdt_testtools.helpers import temp_folder, create_tempfile, get_size, \
-    cleanup_tempfiles, list_zip
-from gcdt_testtools import helpers
+    cleanup_tempfiles, list_zip, read_file_from_zip, list_tarfile, \
+    read_file_from_tarfile
 
 from gcdt_bundler.bundler import bundle_revision, _install_dependencies_with_npm, \
     get_zipped_file, prebundle, make_zip_file_bytes
@@ -29,24 +29,34 @@ def test_bundle_revision(temp_folder):
         file_suffix = '_%s' % file_suffix
     expected_filename = '%s/tenkai-bundle%s.tar.gz' % (temp_folder[0], file_suffix)
     artifacts = [{
-        'content': 'some content',
-        'target': 'stack_output.yml',
-        'attr': 0o644  # permissions -rw-r--r--
-    }]
+            'content': 'some content',
+            'target': 'stack_output.yml',
+            'attr': 0o644  # permissions -rw-r--r--
+        },
+        {
+            'content': json.dumps({'foo': 'bar'}, ensure_ascii=False, encoding='utf8'),
+            'target': 'settings.json',
+            'attr': 0o644  # permissions -rw-r--r--
+        }
+    ]
 
     tarfile_name = bundle_revision(folders,
                                    outputpath=temp_folder[0],
                                    artifacts=artifacts)
     assert tarfile_name == expected_filename
     assert os.path.isfile(expected_filename)
-    tar = tarfile.open(tarfile_name)
-    actual_files = [t.name for t in tar.getmembers()]
+
+    actual_files = list_tarfile(tarfile_name)
     assert 'codedeploy_dev.conf' in actual_files
     assert 'gcdt_dev.json' in actual_files
     assert 'codedeploy/sample_code.txt' in actual_files
     assert 'codedeploy/sample_code2.txt' in actual_files
     assert 'codedeploy/folder/sample_code3.txt' in actual_files
     assert 'stack_output.yml' in actual_files
+    assert 'settings.json' in actual_files
+
+    assert read_file_from_tarfile(tarfile_name, 'stack_output.yml') == 'some content'
+    assert read_file_from_tarfile(tarfile_name, 'settings.json') == '{"foo": "bar"}'
 
 
 @pytest.mark.slow
@@ -192,7 +202,8 @@ def test_get_zipped_file_empty_requirements_txt(temp_folder):
         bigfile.write(os.urandom(1000000))  # 1 MB
 
     zipfile = get_zipped_file('./handler.py', folders_from_file,
-                              settings=b'some test config')
+                              settings=b'some test config',
+                              settings_file='settings.conf')
 
     actual_files = list(list_zip(zipfile))
 
@@ -228,6 +239,24 @@ def test_get_zipped_file_no_requirements_txt(temp_folder):
     assert 'vendored' not in actual_files
     assert 'requirements.txt' not in actual_files
     print(actual_files)
+
+
+def test_get_zipped_file_with_settings(temp_folder):
+    folders_from_file = []
+    os.environ['ENV'] = 'DEV'
+    with open('handler.py', 'w') as hfile:
+        hfile.write('# this is my lambda handler\n')
+
+    zipfile = get_zipped_file('handler.py', folders_from_file,
+                              settings_file='settings.json',
+                              settings={'foo': 'bar'})
+
+    actual_files = list(list_zip(zipfile))
+
+    assert len(actual_files) == 2
+    assert 'settings.json' in actual_files
+    assert 'handler.py' in actual_files
+    assert read_file_from_zip(zipfile, 'settings.json') == '{"foo": "bar"}'
 
 
 # using / developing a better gcdt-bundler structure
