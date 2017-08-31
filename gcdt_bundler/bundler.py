@@ -15,7 +15,7 @@ import ruamel.yaml as yaml
 from gcdt import gcdt_signals, GcdtError
 from gcdt.utils import execute_scripts
 from gcdt.gcdt_logging import getLogger
-from gcdt.gcdt_defaults import DEFAULT_CONFIG
+#from gcdt.gcdt_defaults import DEFAULT_CONFIG
 from gcdt.utils import GracefulExit
 from .vendor import nodeenv
 from .python_bundler import install_dependencies_with_pip, add_deps_folder
@@ -81,7 +81,8 @@ def get_zipped_file(
         settings=None,
         settings_file='settings.json',
         gcdtignore=None,
-        keep=False
+        keep=False,
+        venv_dir='.gcdt/venv'
     ):
     log.debug('keep: %s', keep)
 
@@ -101,7 +102,7 @@ def get_zipped_file(
                         return True
             return False
 
-        venv_dir = DEFAULT_CONFIG['ramuda']['python_bundle_venv_dir']
+        #venv_dir = DEFAULT_CONFIG['ramuda']['python_bundle_venv_dir']
         req_filename = 'requirements.txt'
         if _has_at_least_one_package(req_filename):
             install_dependencies_with_pip('requirements.txt', runtime,
@@ -276,7 +277,7 @@ def bundle(params):
         cfg = config['tenkai']
         folders = cfg.get('bundling', {}).get('folders', [])
         settings = cfg.get('settings', None)
-        settings_file = cfg.get('settings_file', DEFAULT_CONFIG['tenkai']['settings_file'])
+        settings_file = cfg.get('settings_file', config['tenkai']['defaults']['settings_file'])
         stack_output = cfg.get('stack_output', {})
         artifacts = []
         if len(folders) == 0:
@@ -296,7 +297,7 @@ def bundle(params):
         if stack_output:
             artifacts.append({
                 'content': yaml.dump(stack_output, Dumper=yaml.RoundTripDumper),
-                'target': DEFAULT_CONFIG['tenkai']['stack_output_file'],
+                'target': config['tenkai']['defaults']['stack_output_file'],
                 'attr': 0o644  # permissions -rw-r--r--
             })
 
@@ -306,30 +307,31 @@ def bundle(params):
     elif tool == 'ramuda' and cmd in ['bundle', 'deploy']:
         cfg = config['ramuda']
         runtime = cfg['lambda'].get('runtime', 'python2.7')
-        if runtime not in DEFAULT_CONFIG['ramuda']['runtime']:
-            context['error'] = 'Runtime \'%s\' not supported by gcdt.' % runtime
-        else:
-            try:
-                handler_filename = cfg['lambda'].get('handlerFile')
-                folders = cfg.get('bundling', []).get('folders', [])
-                settings = cfg.get('settings', None)
-                settings_file = cfg.get('settings_file', DEFAULT_CONFIG['ramuda']['settings_file'])
-                context['_zipfile'] = get_zipped_file(
-                    handler_filename,
-                    folders,
-                    runtime=runtime,
-                    settings=settings,
-                    settings_file=settings_file,
-                    gcdtignore=gcdtignore,
-                    keep=(context['_arguments']['--keep']
-                          or DEFAULT_CONFIG['ramuda']['keep'])
-                )
-            except GracefulExit:
-                raise
-            except Exception as e:
-                log.debug(str(e), exc_info=True)  # this adds the traceback
-                context['error'] = 'ramuda gcdt-bundler: %s' % str(e)
-                log.error(context['error'])
+        #if runtime not in config['ramuda']['defaults']['runtime']:
+        #    context['error'] = 'Runtime \'%s\' not supported by gcdt.' % runtime
+        #else:
+        try:
+            handler_filename = cfg['lambda'].get('handlerFile')
+            folders = cfg.get('bundling', []).get('folders', [])
+            settings = cfg.get('settings', None)
+            settings_file = cfg.get('settings_file', config['ramuda']['defaults']['settings_file'])
+            context['_zipfile'] = get_zipped_file(
+                handler_filename,
+                folders,
+                runtime=runtime,
+                settings=settings,
+                settings_file=settings_file,
+                gcdtignore=gcdtignore,
+                keep=(context['_arguments']['--keep']
+                      or config['ramuda']['defaults']['keep']),
+                venv_dir=config['ramuda']['defaults']['python_bundle_venv_dir']
+            )
+        except GracefulExit:
+            raise
+        except Exception as e:
+            log.debug(str(e), exc_info=True)  # this adds the traceback
+            context['error'] = 'ramuda gcdt-bundler: %s' % str(e)
+            log.error(context['error'])
 
 
 def register():
