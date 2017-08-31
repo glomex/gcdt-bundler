@@ -102,7 +102,6 @@ def get_zipped_file(
                         return True
             return False
 
-        #venv_dir = DEFAULT_CONFIG['ramuda']['python_bundle_venv_dir']
         req_filename = 'requirements.txt'
         if _has_at_least_one_package(req_filename):
             install_dependencies_with_pip('requirements.txt', runtime,
@@ -244,6 +243,7 @@ def check_buffer_exceeds_limit(buf):
 
 
 ## signal handlers
+'''
 def prebundle(params):
     """Trigger legacy pre-bundle hooks.
     :param params: context, config (context - the _awsclient, etc..
@@ -261,6 +261,7 @@ def prebundle(params):
             if prebundle_failed:
                 context['error'] = 'Failure during prebundle step.'
                 return
+'''
 
 
 def bundle(params):
@@ -314,7 +315,12 @@ def bundle(params):
             handler_filename = cfg['lambda'].get('handlerFile')
             folders = cfg.get('bundling', []).get('folders', [])
             settings = cfg.get('settings', None)
-            settings_file = cfg.get('settings_file', config['ramuda']['defaults']['settings_file'])
+            #settings_file = cfg.get('settings_file', config['ramuda']['defaults']['settings_file'])
+            settings_file = cfg.get('bundling', []).get('settings_file', None)
+            if settings_file.endswith('.conf'):
+                settings = cfg.get('settings_text', None)
+            else:
+                settings = cfg.get('settings', None)
             context['_zipfile'] = get_zipped_file(
                 handler_filename,
                 folders,
@@ -338,10 +344,10 @@ def register():
     """Please be very specific about when your plugin needs to run and why.
     E.g. run the sample stuff after at the very beginning of the lifecycle
     """
-    gcdt_signals.bundle_pre.connect(prebundle)
+    # gcdt_signals.bundle_pre.connect(prebundle)
     gcdt_signals.bundle_init.connect(bundle)
 
 
 def deregister():
-    gcdt_signals.bundle_pre.disconnect(prebundle)
+    # gcdt_signals.bundle_pre.disconnect(prebundle)
     gcdt_signals.bundle_init.disconnect(bundle)
