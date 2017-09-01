@@ -1,8 +1,8 @@
 # Dependencies have to be in sync with other packages (gcdt, glomex-credstash)
 gcdt>=0.2.0
 pathlib2>=2.3.0
-pathspec==0.5.2
 virtualenv>=15.1.0
+# TODO update nodeenv to release 1.2.0
 # we have the nodeenv dependency on board until this is resolved:
 #   https://github.com/ekalinin/nodeenv/issues/185
 #nodeenv==1.1.2
