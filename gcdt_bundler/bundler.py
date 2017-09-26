@@ -30,7 +30,7 @@ class NpmDependencyInstallationError(GcdtError):
     """
     No credentials could be found
     """
-    fmt = 'Unable to install npm dependencies for your AWS Lambda function.'
+    msg = 'Unable to install npm dependencies for your AWS Lambda function.'
 
 
 # tenkai bundling:
@@ -276,7 +276,9 @@ def bundle(params):
     gcdtignore = config.get('gcdtignore', [])
 
     if tool == 'tenkai' and cmd in ['bundle', 'deploy']:
-        cfg = config['tenkai']
+        cfg = config.get('tenkai', None)
+        if cfg is None:
+            raise GcdtError('config missing for \'%s\', bailing out!' % tool)
         folders = cfg.get('bundling', {}).get('folders', [])
         settings = cfg.get('settings', None)
         settings_file = cfg.get('settings_file', config['tenkai']['defaults']['settings_file'])
@@ -307,38 +309,40 @@ def bundle(params):
             bundle_revision(folders, outputpath=outputpath,
                             gcdtignore=gcdtignore, artifacts=artifacts)
     elif tool == 'ramuda' and cmd in ['bundle', 'deploy']:
-        cfg = config['ramuda']
+        cfg = config.get('ramuda', None)
+        if cfg is None:
+            raise GcdtError('config missing for \'%s\', bailing out!' % tool)
         runtime = cfg['lambda'].get('runtime', 'python2.7')
         #if runtime not in config['ramuda']['defaults']['runtime']:
         #    context['error'] = 'Runtime \'%s\' not supported by gcdt.' % runtime
         #else:
-        try:
-            handler_filename = cfg['lambda'].get('handlerFile')
-            folders = cfg.get('bundling', []).get('folders', [])
+        #try:
+        handler_filename = cfg['lambda'].get('handlerFile')
+        folders = cfg.get('bundling', []).get('folders', [])
+        settings = cfg.get('settings', None)
+        #settings_file = cfg.get('settings_file', config['ramuda']['defaults']['settings_file'])
+        settings_file = cfg.get('bundling', []).get('settings_file', None)
+        if settings_file.endswith('.conf'):
+            settings = cfg.get('settings_text', None)
+        else:
             settings = cfg.get('settings', None)
-            #settings_file = cfg.get('settings_file', config['ramuda']['defaults']['settings_file'])
-            settings_file = cfg.get('bundling', []).get('settings_file', None)
-            if settings_file.endswith('.conf'):
-                settings = cfg.get('settings_text', None)
-            else:
-                settings = cfg.get('settings', None)
-            context['_zipfile'] = get_zipped_file(
-                handler_filename,
-                folders,
-                runtime=runtime,
-                settings=settings,
-                settings_file=settings_file,
-                gcdtignore=gcdtignore,
-                keep=(context['_arguments']['--keep']
-                      or config['ramuda']['defaults']['keep']),
-                venv_dir=config['ramuda']['defaults']['python_bundle_venv_dir']
-            )
-        except GracefulExit:
-            raise
-        except Exception as e:
-            log.debug(str(e), exc_info=True)  # this adds the traceback
-            context['error'] = 'ramuda gcdt-bundler: %s' % str(e)
-            log.error(context['error'])
+        context['_zipfile'] = get_zipped_file(
+            handler_filename,
+            folders,
+            runtime=runtime,
+            settings=settings,
+            settings_file=settings_file,
+            gcdtignore=gcdtignore,
+            keep=(context['_arguments']['--keep']
+                  or config['ramuda']['defaults']['keep']),
+            venv_dir=config['ramuda']['defaults']['python_bundle_venv_dir']
+        )
+        #except GracefulExit:
+        #    raise
+        #except Exception as e:
+        #    log.debug(str(e), exc_info=True)  # this adds the traceback
+        #    context['error'] = 'ramuda gcdt-bundler: %s' % str(e)
+        #    log.error(context['error'])
 
 
 def register():
