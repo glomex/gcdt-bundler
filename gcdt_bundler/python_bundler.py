@@ -9,7 +9,8 @@ import zipfile
 import tempfile
 import time
 
-from gcdt import gcdt_signals, GcdtError
+from gcdt import gcdt_signals
+from gcdt.gcdt_exceptions import GcdtError
 from gcdt.gcdt_logging import getLogger
 from gcdt.utils import GracefulExit
 import pip

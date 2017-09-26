@@ -12,7 +12,8 @@ from io import StringIO
 import json
 import ruamel.yaml as yaml
 
-from gcdt import gcdt_signals, GcdtError
+from gcdt import gcdt_signals
+from gcdt.gcdt_exceptions import GcdtError
 from gcdt.utils import execute_scripts
 from gcdt.gcdt_logging import getLogger
 #from gcdt.gcdt_defaults import DEFAULT_CONFIG
