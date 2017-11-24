@@ -79,6 +79,7 @@ def get_zipped_file(
         handler_filename, folders,
         runtime='python2.7',
         settings=None,
+        settings_filename='settings.conf',
         gcdtignore=None,
         keep=False
     ):
@@ -120,7 +121,7 @@ def get_zipped_file(
     if settings:
         artifacts.append({
             'content': settings,
-            'target': 'settings.conf',
+            'target': settings_filename,
             'attr': 0o644  # permissions -rw-r--r--
         })
 
@@ -304,6 +305,7 @@ def bundle(params):
                     folders,
                     runtime=runtime,
                     settings=settings,
+                    settings_filename=DEFAULT_CONFIG['ramuda']['settings_file'],
                     gcdtignore=gcdtignore,
                     keep=(context['_arguments']['--keep']
                           or DEFAULT_CONFIG['ramuda']['keep'])
