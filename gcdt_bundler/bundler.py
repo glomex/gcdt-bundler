@@ -10,6 +10,7 @@ import warnings
 import shutil
 from io import StringIO
 import ruamel.yaml as yaml
+import json
 
 from gcdt import gcdt_signals, GcdtError
 from gcdt.utils import execute_scripts
@@ -35,10 +36,10 @@ class NpmDependencyInstallationError(GcdtError):
 def bundle_revision(paths, outputpath=None, gcdtignore=None, artifacts=None):
     """Create the bundle tar file.
 
-    :param paths: list of path => {'source': ,'target': } 
+    :param paths: list of path => {'source': ,'target': }
     :param outputpath: path to store the temp archive file
     :param gcdtignore: list of path => {'source': ,'target': }
-    :param artifacts: list of artifacts => {'content': ,'target': , 'attr': } 
+    :param artifacts: list of artifacts => {'content': ,'target': , 'attr': }
     :return: path of the archive
     """
     # tar file since this archive format can contain more files than zip!
@@ -114,6 +115,8 @@ def get_zipped_file(
         'target': ''
     })
     artifacts = []
+    if isinstance(settings, dict):
+        settings = json.dumps(settings)
     if settings:
         artifacts.append({
             'content': settings,
@@ -181,9 +184,9 @@ def make_zip_file_bytes(paths, gcdtignore=None, artifacts=None):
     """Create the bundle zip file. With this version the vendor - folder magic
     has been removed.
 
-    :param paths: list of path => {'source': ,'target': } 
+    :param paths: list of path => {'source': ,'target': }
     :param gcdtignore: list of path => {'source': ,'target': }
-    :param artifacts: list of artifacts => {'content': ,'target': , 'attr': } 
+    :param artifacts: list of artifacts => {'content': ,'target': , 'attr': }
     :return: exit_code
     """
     if artifacts is None:
