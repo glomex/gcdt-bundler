@@ -258,9 +258,9 @@ def install_dependencies_with_pip(requirements_file, runtime, venv_dir,
     :param keep: keep / cache installed packages
     """
     # this bundler version shamelessly uses chalice (/github.com/awslabs/chalice/)
-    def _pip_script_in_venv(venv_dir):
-        pip_exe = os.path.join(venv_dir, 'bin', 'pip')
-        return pip_exe
+    def _python_script_in_venv(venv_dir):
+        python_exe = os.path.join(venv_dir, 'bin', 'python')
+        return python_exe
 
     if not os.path.isfile(requirements_file):
         return  # 0
@@ -282,12 +282,12 @@ def install_dependencies_with_pip(requirements_file, runtime, venv_dir,
         log.debug('reusing virtualenv due to \'--keep\' option')
 
     try:
-        pip_exe = _pip_script_in_venv(venv_dir)
-        assert os.path.isfile(pip_exe)
+        python_exe = _python_script_in_venv(venv_dir)
+        assert os.path.isfile(python_exe)
         if keep:
-            pip_cmd = [pip_exe, 'install', '-r', requirements_file]
+            pip_cmd = [python_exe, '-m', 'pip', 'install', '-r', requirements_file]
         else:
-            pip_cmd = [pip_exe, 'install', '-U', '-r', requirements_file]
+            pip_cmd = [python_exe, '-m', 'pip', 'install', '-U', '-r', requirements_file]
         subprocess.check_output(pip_cmd, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         log.debug('Running command: %s resulted in the ' % e.cmd)
