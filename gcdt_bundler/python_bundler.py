@@ -12,7 +12,7 @@ import time
 from gcdt import gcdt_signals, GcdtError
 from gcdt.gcdt_logging import getLogger
 from gcdt.utils import GracefulExit
-import pip.utils
+from pip._internal.utils.misc import get_installed_distributions
 import requests
 from tqdm import tqdm
 from lambda_packages import lambda_packages as lambda_packages_orig
@@ -56,7 +56,7 @@ def _get_installed_packages(site_packages, site_packages_64):
         package_to_keep += os.listdir(site_packages_64)
 
     installed_packages = {package.project_name.lower(): package.version for package in
-                          pip.utils.get_installed_distributions() if package.project_name in package_to_keep or
+                          get_installed_distributions() if package.project_name in package_to_keep or
                           package.location in [site_packages, site_packages_64]}
 
     return installed_packages
