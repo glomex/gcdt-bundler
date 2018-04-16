@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+### [0.0.1349] - 2018-04-16
+#### Fixed
+- update pip usage
+
+### [0.0.1348] - 2018-02-22
+#### Fixed
+- fix working with too long paths
+
 ### [0.0.1347] - 2017-11-28
 #### Added
 - install only prod dependencies (#384)
