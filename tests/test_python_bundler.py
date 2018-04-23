@@ -15,6 +15,8 @@ from gcdt_bundler.python_bundler import _get_cached_manylinux_wheel, \
 
 from . import here
 
+import pip
+
 log = logging.getLogger(__name__)
 
 
@@ -149,5 +151,5 @@ def test_getting_installed_packages():
     with mock.patch('os.path.isdir', return_value=True):
         with mock.patch('os.listdir', return_value=['super_package']):
             #import pip  # this gets called in non-test Zappa mode
-            with mock.patch('pip.get_installed_distributions', return_value=mock_pip_installed_packages):
+            with mock.patch('pip._internal.utils.misc.get_installed_distributions', return_value=mock_pip_installed_packages):
                 assert _get_installed_packages('', '') == {'super_package' : '0.1'}
