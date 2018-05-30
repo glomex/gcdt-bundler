@@ -145,7 +145,8 @@ def _install_dependencies_with_npm(runtime, keep=False):
     NODEENV_FOLDER = 'nodeenv'
     VERSION_MAP = {
         'nodejs4.3': '4.3.2',
-        'nodejs6.10': '6.10.3'
+        'nodejs6.10': '6.10.3',
+        'nodejs8.10': '8.10.0'
     }
     if keep is False:
         # cleanup nodeenv and node_modules folders
