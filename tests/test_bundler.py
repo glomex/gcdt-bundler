@@ -50,7 +50,7 @@ def test_bundle_revision(temp_folder):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize('runtime', ['nodejs6.10', 'nodejs4.3'])
+@pytest.mark.parametrize('runtime', ['nodejs8.10', 'nodejs6.10', 'nodejs4.3'])
 def test_install_dependencies_with_npm(runtime, temp_folder):
     with open('./package.json', 'w') as req:
         req.write(textwrap.dedent("""\
