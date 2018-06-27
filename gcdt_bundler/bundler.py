@@ -107,6 +107,8 @@ def get_zipped_file(
         venv_dir = DEFAULT_CONFIG['ramuda']['python_bundle_venv_dir']
         if _has_pyproject_toml():
             install_dependencies_with_poetry(runtime, venv_dir, keep)
+            add_deps_folder(folders, venv_dir)
+
         elif _has_at_least_one_package('requirements.txt'):
             install_dependencies_with_pip('requirements.txt', runtime,
                                            venv_dir, keep)

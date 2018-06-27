@@ -303,6 +303,8 @@ def install_dependencies_with_poetry(runtime, venv_dir, keep=False):
         log.info('following error: %s' % e.output)
         raise PoetryDependencyInstallationError()
 
+    install_precompiled_packages(venv_dir, runtime)
+
 
 def _prepare_virtualenv(runtime, venv_dir, keep):
     # prepare virtualenv for pip installation if missing or keep == False
