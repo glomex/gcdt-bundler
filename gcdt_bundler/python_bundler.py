@@ -338,7 +338,7 @@ def _prepare_poetry(venv_dir):
 
     install_poetry_cmd = [python_exe, get_poetry_py]
 
-    if os.getenv('POETRY_PREVIEW') == 1:
+    if os.getenv('POETRY_PREVIEW') == '1':
         install_poetry_cmd.append('--preview')
 
     subprocess.check_output(install_poetry_cmd, stderr=subprocess.STDOUT)
