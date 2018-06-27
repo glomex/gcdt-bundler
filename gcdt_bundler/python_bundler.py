@@ -3,6 +3,8 @@ from __future__ import unicode_literals, print_function
 import os
 import sys
 import tarfile
+import urllib2
+
 import subprocess
 import shutil
 import zipfile
@@ -35,6 +37,13 @@ class PipDependencyInstallationError(GcdtError):
     No credentials could be found
     """
     fmt = 'Unable to install pip dependencies for your AWS Lambda function.'
+
+
+class PoetryDependencyInstallationError(GcdtError):
+    """
+    No credentials could be found
+    """
+    fmt = 'Unable to install python dependencies with poetry for your AWS Lambda function.'
 
 
 def _site_packages_dir_in_venv(venv_dir):
@@ -257,14 +266,45 @@ def install_dependencies_with_pip(requirements_file, runtime, venv_dir,
     directory
     :param keep: keep / cache installed packages
     """
-    # this bundler version shamelessly uses chalice (/github.com/awslabs/chalice/)
-    def _python_script_in_venv(venv_dir):
-        python_exe = os.path.join(venv_dir, 'bin', 'python')
-        return python_exe
-
     if not os.path.isfile(requirements_file):
         return  # 0
 
+    _prepare_virtualenv(runtime, venv_dir, keep)
+
+    try:
+        python_exe = _venv_binary(venv_dir)
+        assert os.path.isfile(python_exe)
+        if keep:
+            pip_cmd = [python_exe, '-m', 'pip', 'install', '-r', requirements_file]
+        else:
+            pip_cmd = [python_exe, '-m', 'pip', 'install', '-U', '-r', requirements_file]
+        subprocess.check_output(pip_cmd, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        log.debug('Running command: %s resulted in the ' % e.cmd)
+        log.debug('following error: %s' % e.output)
+        raise PipDependencyInstallationError()
+
+    install_precompiled_packages(venv_dir, runtime)
+
+
+def install_dependencies_with_poetry(runtime, venv_dir, keep=False):
+    _prepare_virtualenv(runtime, venv_dir, keep)
+
+    poetry_exe = _prepare_poetry(venv_dir)
+
+    try:
+        new_path = venv_dir + '/bin:' + os.getenv('PATH')
+        env = {'VIRTUAL_ENV': venv_dir, 'PATH': new_path}
+
+        subprocess.check_output([poetry_exe, 'config', 'settings.virtualenvs.create', 'false'], stderr=subprocess.STDOUT, env=env)
+        subprocess.check_output([poetry_exe, 'install'], stderr=subprocess.STDOUT, env=env)
+    except subprocess.CalledProcessError as e:
+        log.info('Running command: %s resulted in the ' % e.cmd)
+        log.info('following error: %s' % e.output)
+        raise PoetryDependencyInstallationError()
+
+
+def _prepare_virtualenv(runtime, venv_dir, keep):
     # prepare virtualenv for pip installation if missing or keep == False
     if not os.path.exists(venv_dir) or keep is False:
         log.debug('creating fresh virtualenv in %s', venv_dir)
@@ -281,17 +321,24 @@ def install_dependencies_with_pip(requirements_file, runtime, venv_dir,
     else:
         log.debug('reusing virtualenv due to \'--keep\' option')
 
-    try:
-        python_exe = _python_script_in_venv(venv_dir)
-        assert os.path.isfile(python_exe)
-        if keep:
-            pip_cmd = [python_exe, '-m', 'pip', 'install', '-r', requirements_file]
-        else:
-            pip_cmd = [python_exe, '-m', 'pip', 'install', '-U', '-r', requirements_file]
-        subprocess.check_output(pip_cmd, stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        log.debug('Running command: %s resulted in the ' % e.cmd)
-        log.debug('following error: %s' % e.output)
-        raise PipDependencyInstallationError()
 
-    install_precompiled_packages(venv_dir, runtime)
+def _prepare_poetry(venv_dir):
+    python_exe = _venv_binary(venv_dir)
+    poetry_exe = _venv_binary(venv_dir, 'poetry')
+
+    if os.path.isfile(poetry_exe):
+        return poetry_exe
+
+    poetry_install_script = 'https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py'
+    with open('get-poetry.py', 'w') as f:
+        f.write(urllib2.urlopen(poetry_install_script).read())
+
+    install_poetry_cmd = [python_exe, 'get-poetry.py']
+    subprocess.check_output(install_poetry_cmd, stderr=subprocess.STDOUT)
+    return poetry_exe
+
+
+# this bundler version shamelessly uses chalice (/github.com/awslabs/chalice/)
+def _venv_binary(venv_dir, binary='python'):
+    python_exe = os.path.join(venv_dir, 'bin', binary)
+    return python_exe

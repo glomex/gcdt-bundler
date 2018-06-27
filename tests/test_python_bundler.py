@@ -2,6 +2,8 @@
 from __future__ import unicode_literals, print_function
 import os
 import logging
+from textwrap import dedent
+
 import collections
 
 import pytest
@@ -11,7 +13,7 @@ from gcdt_testtools import helpers
 from gcdt_bundler.python_bundler import _get_cached_manylinux_wheel, \
     _have_correct_lambda_package_version, _site_packages_dir_in_venv, \
     _have_any_lambda_package_version, _get_installed_packages, \
-    install_dependencies_with_pip, PipDependencyInstallationError
+    install_dependencies_with_pip, PipDependencyInstallationError, install_dependencies_with_poetry
 
 from . import here
 
@@ -153,3 +155,36 @@ def test_getting_installed_packages():
             #import pip  # this gets called in non-test Zappa mode
             with mock.patch('pip._internal.utils.misc.get_installed_distributions', return_value=mock_pip_installed_packages):
                 assert _get_installed_packages('', '') == {'super_package' : '0.1'}
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('runtime', ['python2.7', 'python3.6'])
+def test_install_dependencies_with_poetry(runtime, temp_folder, cleanup_tempfiles):
+    venv_dir = '%s/.gcdt/venv' % temp_folder[0]
+    pyproject_toml = os.getcwd() + '/pyproject.toml'
+
+    with open(pyproject_toml, 'w') as f:
+        f.write(dedent("""\
+        [tool.poetry]
+        name = "hello"
+        version = "0.1.0"
+        description = ""
+        authors = ["Vasiliy Pupkin <Vasiliy.Pupkin@example.com>"]
+        
+        [tool.poetry.dependencies]
+        python = "*"
+        werkzeug = "*"
+        """))
+
+    log.info(install_dependencies_with_poetry(
+        runtime,
+        venv_dir,
+        False)
+    )
+
+    deps_dir = _site_packages_dir_in_venv(venv_dir)
+    packages = os.listdir(deps_dir)
+    for package in packages:
+        log.debug(package)
+
+    assert 'werkzeug' in packages

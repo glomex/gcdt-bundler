@@ -18,7 +18,7 @@ from gcdt.gcdt_logging import getLogger
 from gcdt.gcdt_defaults import DEFAULT_CONFIG
 from gcdt.utils import GracefulExit
 from .vendor import nodeenv
-from .python_bundler import install_dependencies_with_pip, add_deps_folder
+from .python_bundler import install_dependencies_with_pip, add_deps_folder, install_dependencies_with_poetry
 from gcdt_bundler.bundler_utils import glob_files, get_path_info
 
 
@@ -101,9 +101,13 @@ def get_zipped_file(
                         return True
             return False
 
+        def _has_pyproject_toml():
+            return os.path.isfile('pyproject.toml')
+
         venv_dir = DEFAULT_CONFIG['ramuda']['python_bundle_venv_dir']
-        req_filename = 'requirements.txt'
-        if _has_at_least_one_package(req_filename):
+        if _has_pyproject_toml():
+            install_dependencies_with_poetry(runtime, venv_dir, keep)
+        elif _has_at_least_one_package('requirements.txt'):
             install_dependencies_with_pip('requirements.txt', runtime,
                                            venv_dir, keep)
             add_deps_folder(folders, venv_dir)
