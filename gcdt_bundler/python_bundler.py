@@ -327,16 +327,20 @@ def _prepare_virtualenv(runtime, venv_dir, keep):
 def _prepare_poetry(venv_dir):
     python_exe = _venv_binary(venv_dir)
     poetry_exe = _venv_binary(venv_dir, 'poetry')
+    get_poetry_py = 'get-poetry.py'
 
     if os.path.isfile(poetry_exe):
         return poetry_exe
 
     poetry_install_script = 'https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py'
-    with open('get-poetry.py', 'w') as f:
+    with open(get_poetry_py, 'w') as f:
         f.write(urllib2.urlopen(poetry_install_script).read())
 
-    install_poetry_cmd = [python_exe, 'get-poetry.py']
+    install_poetry_cmd = [python_exe, get_poetry_py]
     subprocess.check_output(install_poetry_cmd, stderr=subprocess.STDOUT)
+
+    os.remove(get_poetry_py)
+
     return poetry_exe
 
 
