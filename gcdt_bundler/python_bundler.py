@@ -119,8 +119,8 @@ def _get_manylinux_wheel_url(runtime, package_name, package_version):
                 return f['url']
     except GracefulExit:
         raise
-    except Exception as e: # pragma: no cover
-        return None
+    except Exception as e:
+        raise
     return None
 
 
@@ -251,12 +251,12 @@ def install_precompiled_packages(venv_dir, runtime):
     except GracefulExit:
         raise
     except Exception as e:
-        print(e)
+        raise
         # XXX - What should we do here?
 
 
 def install_dependencies_with_pip(requirements_file, runtime, venv_dir,
-                                   keep=False):
+                                  keep=False):
     """installs dependencies from a pip requirements_file to a local
     destination_folder
 
@@ -278,7 +278,7 @@ def install_dependencies_with_pip(requirements_file, runtime, venv_dir,
             pip_cmd = [python_exe, '-m', 'pip', 'install', '-r', requirements_file]
         else:
             pip_cmd = [python_exe, '-m', 'pip', 'install', '-U', '-r', requirements_file]
-        subprocess.check_output(pip_cmd, stderr=subprocess.STDOUT)
+        print(subprocess.check_output(pip_cmd, stderr=subprocess.STDOUT))
     except subprocess.CalledProcessError as e:
         log.debug('Running command: %s resulted in the ' % e.cmd)
         log.debug('following error: %s' % e.output)
@@ -295,9 +295,8 @@ def install_dependencies_with_poetry(runtime, venv_dir, keep=False):
     try:
         new_path = venv_dir + '/bin:' + os.getenv('PATH')
         env = {'VIRTUAL_ENV': venv_dir, 'PATH': new_path}
-
-        subprocess.check_output([poetry_exe, 'config', 'settings.virtualenvs.create', 'false'], stderr=subprocess.STDOUT, env=env)
-        subprocess.check_output([poetry_exe, 'install'], stderr=subprocess.STDOUT, env=env)
+        os.environ['POETRY_VIRTUALENVS_CREATE'] = False
+        print(subprocess.check_output([poetry_exe, 'install'], stderr=subprocess.STDOUT, env=env))
     except subprocess.CalledProcessError as e:
         log.info('Running command: %s resulted in the ' % e.cmd)
         log.info('following error: %s' % e.output)
@@ -315,7 +314,7 @@ def _prepare_virtualenv(runtime, venv_dir, keep):
             # in order to intermix gcdt and AWS Lambda venvs and runtimes
             # we install virtualenv via subprocess so we can use the '-p' option
             venv_cmd = ['virtualenv', venv_dir, '-p', runtime]
-            subprocess.check_output(venv_cmd, stderr=subprocess.STDOUT)
+            print(subprocess.check_output(venv_cmd, stderr=subprocess.STDOUT))
         except subprocess.CalledProcessError as e:
             log.debug('Running command: %s resulted in the ' % e.cmd)
             log.debug('following error: %s' % e.output)
@@ -328,20 +327,22 @@ def _prepare_poetry(venv_dir):
     python_exe = _venv_binary(venv_dir)
     poetry_exe = _venv_binary(venv_dir, 'poetry')
     get_poetry_py = 'get-poetry.py'
+    poetry_version = os.getenv('POETRY_VERSION', '1.0.2')
 
     if os.path.isfile(poetry_exe):
         return poetry_exe
 
-    poetry_install_script = 'https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py'
+
+    poetry_install_script = 'https://raw.githubusercontent.com/python-poetry/poetry/{}/get-poetry.py'.format(poetry_version)
     with open(get_poetry_py, 'w') as f:
         f.write(urllib2.urlopen(poetry_install_script).read())
 
-    install_poetry_cmd = [python_exe, get_poetry_py]
+    install_poetry_cmd = [python_exe, get_poetry_py, '--version', poetry_version]
 
     if os.getenv('POETRY_PREVIEW') == '1':
         install_poetry_cmd.append('--preview')
 
-    subprocess.check_output(install_poetry_cmd, stderr=subprocess.STDOUT)
+    print(subprocess.check_output(install_poetry_cmd, stderr=subprocess.STDOUT))
 
     os.remove(get_poetry_py)
 
